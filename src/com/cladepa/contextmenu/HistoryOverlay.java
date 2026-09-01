@@ -92,15 +92,20 @@ public class HistoryOverlay {
         rootView = root;
 
         int windowType = Build.VERSION.SDK_INT >= 26 ? TYPE_OVERLAY : TYPE_PHONE;
+        int savedW = Prefs.historyWinW(ctx);
+        int savedH = Prefs.historyWinH(ctx);
+        int savedX = Prefs.historyWinX(ctx);
+        int savedY = Prefs.historyWinY(ctx);
         params = new WindowManager.LayoutParams(
-                dp(ctx, 420), dp(ctx, 480),
+                savedW > 0 ? savedW : dp(ctx, 420),
+                savedH > 0 ? savedH : dp(ctx, 480),
                 windowType,
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
                 PixelFormat.TRANSLUCENT
         );
         params.gravity = Gravity.TOP | Gravity.START;
-        params.x = dp(ctx, 200);
-        params.y = dp(ctx, 100);
+        params.x = savedX >= 0 ? savedX : dp(ctx, 200);
+        params.y = savedY >= 0 ? savedY : dp(ctx, 100);
 
         root.setFocusableInTouchMode(true);
         root.setFocusable(true);
@@ -119,6 +124,9 @@ public class HistoryOverlay {
                         params.x = startX + (int) (event.getRawX() - touchX);
                         params.y = startY + (int) (event.getRawY() - touchY);
                         try { wm.updateViewLayout(rootView, params); } catch (Exception ignored) { }
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        Prefs.setHistoryWindow(ctx, params.x, params.y, params.width, params.height);
                         return true;
                 }
                 return false;
@@ -141,6 +149,9 @@ public class HistoryOverlay {
                         params.width = Math.max(dp(ctx, 220), newW);
                         params.height = Math.max(dp(ctx, 180), newH);
                         try { wm.updateViewLayout(rootView, params); } catch (Exception ignored) { }
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        Prefs.setHistoryWindow(ctx, params.x, params.y, params.width, params.height);
                         return true;
                 }
                 return false;

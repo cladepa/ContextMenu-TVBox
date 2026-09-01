@@ -32,6 +32,20 @@ public class Prefs {
         get(ctx).edit().putString("stfolder_path", path).commit();
     }
 
+    public static int historyWinX(Context ctx) { return get(ctx).getInt("history_win_x", -1); }
+    public static int historyWinY(Context ctx) { return get(ctx).getInt("history_win_y", -1); }
+    public static int historyWinW(Context ctx) { return get(ctx).getInt("history_win_w", -1); }
+    public static int historyWinH(Context ctx) { return get(ctx).getInt("history_win_h", -1); }
+
+    public static void setHistoryWindow(Context ctx, int x, int y, int w, int h) {
+        get(ctx).edit()
+                .putInt("history_win_x", x)
+                .putInt("history_win_y", y)
+                .putInt("history_win_w", w)
+                .putInt("history_win_h", h)
+                .commit();
+    }
+
     public static int historyFontSizeSp(Context ctx) {
         return get(ctx).getInt("history_font_sp", 14);
     }

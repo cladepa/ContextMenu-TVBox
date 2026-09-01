@@ -237,18 +237,18 @@ public class OverlayManager {
         if (kbCsv == null || kbCsv.trim().length() == 0) {
             kbCsv = "HAOBO Technology USB Composite Device Keyboard";
         }
-        return "echo '" + kbCsv + "' | tr ',' '\\n' | while read -r kbname; do "
-                + "[ -z \"$kbname\" ] && continue; "
-                + "DEV=\"\"; for f in /sys/class/input/event*/device/name; do "
+        return "KBNAMES='" + kbCsv + "'; "
+                + "for f in /sys/class/input/event*/device/name; do "
                 + "n=$(cat \"$f\"); "
-                + "if [ \"$n\" = \"$kbname\" ]; then "
-                + "d=\"${f%/device/name}\"; DEV=\"/dev/input/${d##*/}\"; break; fi; done; "
-                + "if [ -n \"$DEV\" ]; then "
+                + "case \",$KBNAMES,\" in "
+                + "*\",$n,\"*) "
+                + "d=\"${f%/device/name}\"; DEV=\"/dev/input/${d##*/}\"; "
                 + "sendevent \"$DEV\" 1 29 1; sendevent \"$DEV\" 0 0 0; "
                 + "sendevent \"$DEV\" 1 30 1; sendevent \"$DEV\" 0 0 0; "
                 + "sendevent \"$DEV\" 1 30 0; sendevent \"$DEV\" 0 0 0; "
                 + "sendevent \"$DEV\" 1 29 0; sendevent \"$DEV\" 0 0 0; "
-                + "fi; done";
+                + ";; esac; "
+                + "done";
     }
 
     private static String copyAndSyncCmd(int keycode) {

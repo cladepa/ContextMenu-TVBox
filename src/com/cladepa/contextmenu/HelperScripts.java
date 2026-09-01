@@ -17,23 +17,18 @@ public class HelperScripts {
         "MY_NAME=\"$3\"\n" +
         "[ -z \"$MY_NAME\" ] && MY_NAME=\"tvbox\"\n" +
         "\n" +
-        "echo \"$MOUSE_NAMES\" | tr ',' '\\n' | while read -r mname; do\n" +
-        "  [ -z \"$mname\" ] && continue\n" +
-        "  DEV=\"\"\n" +
-        "  for f in /sys/class/input/event*/device/name; do\n" +
-        "    n=$(cat \"$f\")\n" +
-        "    if [ \"$n\" = \"$mname\" ]; then\n" +
+        "for f in /sys/class/input/event*/device/name; do\n" +
+        "  n=$(cat \"$f\")\n" +
+        "  case \",$MOUSE_NAMES,\" in\n" +
+        "    *\",$n,\"*)\n" +
         "      d=\"${f%/device/name}\"\n" +
         "      DEV=\"/dev/input/${d##*/}\"\n" +
-        "      break\n" +
-        "    fi\n" +
-        "  done\n" +
-        "  if [ -n \"$DEV\" ]; then\n" +
-        "    sendevent \"$DEV\" 2 0 1\n" +
-        "    sendevent \"$DEV\" 0 0 0\n" +
-        "    sendevent \"$DEV\" 2 0 -1\n" +
-        "    sendevent \"$DEV\" 0 0 0\n" +
-        "  fi\n" +
+        "      sendevent \"$DEV\" 2 0 1\n" +
+        "      sendevent \"$DEV\" 0 0 0\n" +
+        "      sendevent \"$DEV\" 2 0 -1\n" +
+        "      sendevent \"$DEV\" 0 0 0\n" +
+        "      ;;\n" +
+        "  esac\n" +
         "done\n" +
         "sleep 0.05\n" +
         "\n" +
@@ -69,7 +64,6 @@ public class HelperScripts {
         "done\n" +
         "\n" +
         "echo \"${X}|${Y}|${DEVICES}\"\n";
-
     public static final String NOTIFY_TVBOX_SH =
         "#!/bin/sh\n" +
         "am broadcast -a tv.contextmenu.FLASH -n com.cladepa.contextmenu/.CommandReceiver --user 0\n";
