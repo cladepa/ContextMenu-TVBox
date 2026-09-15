@@ -67,6 +67,61 @@ public class HelperScripts {
     public static final String NOTIFY_TVBOX_SH =
         "#!/bin/sh\n" +
         "am broadcast -a tv.contextmenu.FLASH -n com.cladepa.contextmenu/.CommandReceiver --user 0\n";
+    public static final String CLIPBOARD_MONITOR_SH =
+        "#!/system/bin/sh\n" +
+        "# Демон мониторинга системного буфера обмена\n" +
+        "# Добавляет все изменения буфера в историю, независимо от источника\n" +
+        "\n" +
+        "unset LD_LIBRARY_PATH LD_PRELOAD\n" +
+        "\n" +
+        "BUFFER_DIR=\"${1:-/storage/emulated/0/Zametki_ALL/claude_bufer}\"\n" +
+        "DEVICE_NAME=\"${2:-tvbox}\"\n" +
+        "POLL_INTERVAL=\"${3:-2}\"\n" +
+        "\n" +
+        "# Валидация директории\n" +
+        "[ -d \"$BUFFER_DIR\" ] || { echo \"Buffer dir not found: $BUFFER_DIR\" >&2; exit 1; }\n" +
+        "\n" +
+        "# Кэш для отслеживания изменений буфера\n" +
+        "CACHE_FILE=\"/data/local/tmp/clipboard_daemon_cache_${DEVICE_NAME}.txt\"\n" +
+        "touch \"$CACHE_FILE\"\n" +
+        "\n" +
+        "# Функция для чтения буфера через Clip\n" +
+        "get_clipboard() {\n" +
+        "    ANDROID_ROOT=/system ANDROID_DATA=/data CLASSPATH=/data/local/tmp/clip.jar \\\n" +
+        "        app_process /system/bin Clip 2>/dev/null\n" +
+        "}\n" +
+        "\n" +
+        "# Функция для добавления в историю\n" +
+        "add_to_history() {\n" +
+        "    local content=\"$1\"\n" +
+        "    local hist_file=\"$BUFFER_DIR/clip_hist-${DEVICE_NAME}.txt\"\n" +
+        "    local ts=$(date '+%Y-%m-%dT%H:%M:%S')\n" +
+        "    \n" +
+        "    printf '\\n===ENTRY %s===\\n%s\\n' \"$ts\" \"$content\" >> \"$hist_file\"\n" +
+        "}\n" +
+        "\n" +
+        "# Основной цикл мониторинга\n" +
+        "while true; do\n" +
+        "    # Читаем текущий буфер\n" +
+        "    current=$(get_clipboard)\n" +
+        "    \n" +
+        "    # Читаем кэшированное значение\n" +
+        "    cached=$(cat \"$CACHE_FILE\" 2>/dev/null)\n" +
+        "    \n" +
+        "    # Если буфер изменился\n" +
+        "    if [ \"$current\" != \"$cached\" ] && [ -n \"$current\" ]; then\n" +
+        "        # Сохраняем в основной файл устройства\n" +
+        "        printf '%s' \"$current\" > \"$BUFFER_DIR/${DEVICE_NAME}.txt\"\n" +
+        "        \n" +
+        "        # Добавляем в историю\n" +
+        "        add_to_history \"$current\"\n" +
+        "        \n" +
+        "        # Обновляем кэш\n" +
+        "        printf '%s' \"$current\" > \"$CACHE_FILE\"\n" +
+        "    fi\n" +
+        "    \n" +
+        "    sleep \"$POLL_INTERVAL\"\n" +
+        "done\n";
 
     public static String install(String targetPath, String content) {
         String b64 = Base64.encodeToString(content.getBytes(), Base64.NO_WRAP);

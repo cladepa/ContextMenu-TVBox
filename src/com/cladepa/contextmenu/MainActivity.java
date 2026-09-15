@@ -373,6 +373,17 @@ public class MainActivity extends Activity {
                     public void run() {
                         HelperScripts.install("/data/local/tmp/discover_menu.sh",
                                 HelperScripts.DISCOVER_MENU_SH);
+                        
+                        // Установка и запуск демона мониторинга буфера обмена
+                        String bufferDir = Prefs.bufferDir(MainActivity.this);
+                        String deviceName = Prefs.deviceName(MainActivity.this);
+                        HelperScripts.install("/data/local/tmp/clipboard_monitor.sh",
+                                HelperScripts.CLIPBOARD_MONITOR_SH);
+                        // Убиваем старый процесс демона если он есть
+                        Root.exec("pkill -f '/data/local/tmp/clipboard_monitor.sh' 2>/dev/null || true");
+                        // Запускаем новый демон в фоне
+                        Root.exec("sh /data/local/tmp/clipboard_monitor.sh '" + bufferDir + "' '" + deviceName + "' 2 > /dev/null &");
+                        
                         final String stfolderCheck = Root.exec("[ -d '" + stfolder + "' ] && echo OK || echo FAIL");
                         if (stfolderCheck.contains("OK")) {
                             HelperScripts.install(stfolder + "/notify_tvbox.sh",
@@ -382,13 +393,12 @@ public class MainActivity extends Activity {
                             @Override
                             public void run() {
                                 if (stfolderCheck.contains("OK")) {
-                                    tvScriptsStatus.setText("Готово: discover_menu.sh в /data/local/tmp, "
-                                            + "notify_tvbox.sh в " + stfolder + " ✓");
+                                    tvScriptsStatus.setText("Готово: discover_menu.sh, clipboard_monitor.sh (фоновый демон), "
+                                            + "notify_tvbox.sh ✓");
                                     tvScriptsStatus.setTextColor(Color.parseColor("#4CAF50"));
                                 } else {
-                                    tvScriptsStatus.setText("discover_menu.sh установлен ✓, но .stfolder ("
-                                            + stfolder + ") не найдена — notify_tvbox.sh не положен, "
-                                            + "проверь путь выше ⚠");
+                                    tvScriptsStatus.setText("discover_menu.sh, clipboard_monitor.sh ✓, но .stfolder ("
+                                            + stfolder + ") не найдена — notify_tvbox.sh не положен ⚠");
                                     tvScriptsStatus.setTextColor(Color.parseColor("#FFA000"));
                                 }
                             }
