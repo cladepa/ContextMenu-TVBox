@@ -1,4 +1,6 @@
 *.keystore
 build/
+build_test/
 *.apk
 *.dex
+!/ContextMenu.apk
