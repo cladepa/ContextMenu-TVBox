@@ -381,8 +381,9 @@ public class MainActivity extends Activity {
                                 HelperScripts.CLIPBOARD_MONITOR_SH);
                         // Убиваем старый процесс демона если он есть
                         Root.exec("pkill -f '/data/local/tmp/clipboard_monitor.sh' 2>/dev/null || true");
-                        // Запускаем новый демон в фоне
-                        Root.exec("sh /data/local/tmp/clipboard_monitor.sh '" + bufferDir + "' '" + deviceName + "' 2 > /dev/null &");
+                        // Запускаем новый демон в фоне (важно: все 3 потока отвязаны от su-сессии,
+                        // иначе Root.exec зависает на readLine(stderr) навсегда — демон бесконечен)
+                        Root.exec("sh /data/local/tmp/clipboard_monitor.sh '" + bufferDir + "' '" + deviceName + "' 2 > /dev/null 2>&1 < /dev/null &");
                         
                         final String stfolderCheck = Root.exec("[ -d '" + stfolder + "' ] && echo OK || echo FAIL");
                         if (stfolderCheck.contains("OK")) {
